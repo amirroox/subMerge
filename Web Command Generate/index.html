@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subtitle Attacher (SubMerge)</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+    <h1>🎬 Subtitle Attacher (SubMerge)</h1>
+
+    <div class="file-section">
+        <div class="drop-zone" onclick="document.getElementById('videoFile').click()">
+            <h3>📹 Video File</h3>
+            <p>Drop video file here or click to select</p>
+            <input type="file" id="videoFile" class="file-input" accept=".mp4,.avi,.mkv,.mov,.wmv,.flv,.webm">
+            <div id="videoFileName" class="file-name" style="display: none;"></div>
+        </div>
+
+        <div class="drop-zone" onclick="document.getElementById('subtitleFile').click()">
+            <h3>📝 Subtitle File</h3>
+            <p>Drop subtitle file here or click to select</p>
+            <input type="file" id="subtitleFile" class="file-input" accept=".srt,.ass,.ssa,.vtt">
+            <div id="subtitleFileName" class="file-name" style="display: none;"></div>
+        </div>
+    </div>
+
+    <div class="output-section">
+        <label for="outputPath">Output File (optional):</label>
+        <input type="text" id="outputPath" placeholder="Leave empty to overwrite original file">
+    </div>
+
+    <div class="options-section">
+        <h3>⚙️ Options</h3>
+        <div class="options-grid">
+            <div class="option-group">
+                <label for="language">Language:</label>
+                <select id="language">
+                    <option value="eng">English</option>
+                    <option value="fa">Persian</option>
+                    <option value="spa">Spanish</option>
+                    <option value="fra">French</option>
+                    <option value="deu">German</option>
+                    <option value="ita">Italian</option>
+                    <option value="rus">Russian</option>
+                    <option value="ara">Arabic</option>
+                    <option value="chi">Chinese</option>
+                    <option value="jpn">Japanese</option>
+                </select>
+            </div>
+
+            <div class="option-group">
+                <label for="metadataValue">Metadata Value:</label>
+                <input type="text" id="metadataValue" value="ro-ox.com">
+            </div>
+        </div>
+
+        <div class="checkboxes">
+            <div class="checkbox-item">
+                <input type="checkbox" id="addMetadata">
+                <label for="addMetadata">Add Metadata</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="clearSubs">
+                <label for="clearSubs">Clear Existing Subtitles</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="metadataOnly">
+                <label for="metadataOnly">Metadata Only</label>
+            </div>
+        </div>
+    </div>
+
+    <button class="process-button" onclick="generateCommand()">
+        🚀 Generate Command
+    </button>
+
+    <div id="statusSection" class="status-section" style="display: none;">
+        <div id="statusMessage"></div>
+        <div class="progress-bar" id="progressBar" style="display: none;">
+            <div class="progress-fill"></div>
+        </div>
+    </div>
+
+    <div id="commandOutput" class="command-output">
+        <div id="commandText"></div>
+    </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
