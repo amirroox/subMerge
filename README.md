@@ -14,6 +14,7 @@ Available in two versions: **Python** (lightweight, no dependencies) and **C++**
 - 🧹 Optionally remove all existing subtitle tracks before attaching new ones
 - ⚡ Fast C++ version using `nlohmann/json` and FFmpeg tools
 - 🐍 Python version with no external dependencies
+- 🌐 With web UI for command generation
 
 ---
 
@@ -39,6 +40,10 @@ subMerge/
 │   ├── main.cpp
 ├── python/
 │   ├── main.py
+├── Web Command Generate/
+│   ├── index.html
+│   ├── script.js
+│   ├── style.css
 ├── LICENSE
 ├── README.md
 ```
@@ -98,6 +103,14 @@ cmake --build build
 #### Arguments
 
 Same as Python version — full parity of features.
+
+---
+
+### 🌐 Web UI Command Generator
+
+#### Simple Run: just click on index.html
+
+![Web UI Command Generator](./Web%20Command%20Generate/image.png)
 
 ---
 
