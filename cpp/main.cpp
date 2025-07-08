@@ -102,6 +102,7 @@ void attach_subtitle(const std::string& input_file, const std::string& subtitle_
         if (clear_existing_subs) {
             // Map all streams except existing subtitles, then add new subtitle
             command.insert(command.end(), {"-map", "0", "-map", "-0:s", "-map", "1"});
+            count_subs -= 1;
         } else {
             // Map all original streams and add new subtitle
             command.insert(command.end(), {"-map", "0", "-map", "1"});
@@ -137,12 +138,15 @@ void attach_subtitle(const std::string& input_file, const std::string& subtitle_
         });
     }
 
+
+    std::string extension = output_file.substr(output_file.find_last_of('.') + 1);
+
     // Use stream copy to preserve quality and technical specifications
     // This ensures bitrates and other technical info remain unchanged
     command.insert(command.end(), {
             "-c:v", "copy",     // Copy video codec (preserves bitrate)
             "-c:a", "copy",     // Copy audio codec (preserves bitrate)
-            "-c:s", "copy",     // Copy subtitle codec
+            "-c:s", extension == "mp4" ? "mov_text" : "copy",     // Copy subtitle codec
 //            "-avoid_negative_ts", "make_zero",  // Handle timestamp issues
             output_file
     });
@@ -241,9 +245,15 @@ int main(int argc, char* argv[]) {
     }
 
     // Set output file to input file if not specified
+    bool use_temp = false;
+
     if (output_file.empty()) {
-        output_file = input_file;
+        fs::path input_path(input_file);
+        fs::path temp_path = input_path.parent_path() / (input_path.stem().string() + ".temp" + input_path.extension().string());
+        output_file = temp_path.string();
+        use_temp = true;
     }
+
 
     // Warn if output file is the same as input file
     if (input_file == output_file) {
@@ -253,6 +263,17 @@ int main(int argc, char* argv[]) {
     // Execute the subtitle attachment process
     try {
         attach_subtitle(input_file, subtitle_file, output_file, add_metadata, clear_subs, lang, metadata_value);
+        // Check for overwrite
+        if (use_temp) {
+            try {
+                fs::rename(output_file, input_file); // Overwrite original file
+                std::cout << "Original file overwritten: " << input_file << "\n";
+            } catch (const fs::filesystem_error& e) {
+                std::cerr << "Failed to overwrite original file: " << e.what() << "\n";
+                return 1;
+            }
+        }
+
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << "\n";
         return 1;

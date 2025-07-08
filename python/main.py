@@ -34,6 +34,7 @@ def attach_subtitle(input_file, subtitle_file, output_file, add_metadata, clear_
         command += ["-i", subtitle_file]
         if clear_existing_subs:
             command += ["-map", "0", "-map", "-0:s", "-map", "1"]
+            count_subs -= 1
         else:
             command += ["-map", "0", "-map", "1"]
         command += [f"-metadata:s:s:{count_subs}", f"language={sub_language}"]
@@ -56,7 +57,7 @@ def attach_subtitle(input_file, subtitle_file, output_file, add_metadata, clear_
     command += [
         "-c:v", "copy",
         "-c:a", "copy",
-        "-c:s", "copy",
+        "-c:s", "mov_text" if output_file.endswith(".mp4") else "copy",
         # "-c:s", "mov_text",  # Optional: if using MP4
         output_file
     ]
@@ -87,7 +88,15 @@ def main():
 
     input_file = args.input
     subtitle_file = args.subtitle
-    output_file = args.output or input_file
+
+    if args.output:
+        output_file = args.output
+    else:
+        # Save to temporary file, then replace original
+        base, ext = os.path.splitext(input_file)
+        output_file = base + ".temp" + ext
+
+    # output_file = args.output or input_file
     meta_value = args.metadata  # None, "ro-ox.com" or custom value
     add_metadata = meta_value is not None
     clear_existing_subs = args.clear_subs
@@ -104,6 +113,11 @@ def main():
 
     # Main Function
     attach_subtitle(input_file, subtitle_file, output_file, add_metadata, clear_existing_subs, subtitle_lang, meta_value)
+
+    # Replace original file if no output was specified
+    if not args.output:
+        os.replace(output_file, input_file)
+        print(f"Original file replaced with updated file: {input_file}")
 
 
 if __name__ == "__main__":
