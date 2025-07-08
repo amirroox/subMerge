@@ -4,6 +4,12 @@ import os
 import sys
 import json
 
+RESET = "\033[0m"
+RED = "\033[31m"
+GREEN = "\033[32m"
+YELLOW = "\033[33m"
+BLUE = "\033[34m"
+
 
 def count_subtitles(video_path) -> int:
     command = [
@@ -63,12 +69,12 @@ def attach_subtitle(input_file, subtitle_file, output_file, add_metadata, clear_
     ]
 
     try:
-        print(f"Executing command: {" ".join(command)}\n")
+        print(f"{BLUE}Executing command: {" ".join(command)}\n{RESET}")
         # Run Main
         subprocess.run(command, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        print(f"Subtitle attached successfully. Output: {output_file}")
+        print(f"{GREEN}Subtitle attached successfully. Output: {output_file}{RESET}")
     except subprocess.CalledProcessError:
-        print("Error occurred while running ffmpeg.")
+        print(f"{RED}Error occurred while running ffmpeg.{RESET}")
         sys.exit(1)
 
 
@@ -108,7 +114,7 @@ def main():
 
     if not add_metadata:
         if not subtitle_file or not os.path.exists(subtitle_file):
-            print("Subtitle file is required and must exist unless using -m only.")
+            print(f"{RED}Subtitle file is required and must exist unless using -m only.{RESET}")
             sys.exit(1)
 
     # Main Function
@@ -117,7 +123,7 @@ def main():
     # Replace original file if no output was specified
     if not args.output:
         os.replace(output_file, input_file)
-        print(f"Original file replaced with updated file: {input_file}")
+        print(f"{YELLOW}Original file replaced with updated file: {input_file}{RESET}")
 
 
 if __name__ == "__main__":

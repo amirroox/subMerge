@@ -5,9 +5,39 @@
 #include <nlohmann/json.hpp>
 #include <filesystem>
 
+// Static Color
+#define RESET   "\033[0m"
+#define RED     "\033[31m"
+#define GREEN   "\033[32m"
+#define YELLOW  "\033[33m"
+#define BLUE    "\033[34m"
 
 using json = nlohmann::json;
+using namespace std;
 namespace fs = std::filesystem;
+
+
+enum StreamType {
+    OUT,
+    ERR
+};
+
+/**
+ * Function for print with color
+ */
+template<typename... Args>
+void print_colored(const std::string& color, StreamType stream, const Args&... args) {
+    std::ostringstream oss;
+    (oss << ... << args);  // Fold expression (C++17)
+
+    std::string message = color + oss.str() + RESET;
+
+    if (stream == OUT) {
+        cout << message << std::endl;
+    } else {
+        cerr << message << std::endl;
+    }
+}
 
 /**
  * Execute a command and return its output
@@ -34,7 +64,7 @@ std::string run_command(const std::vector<std::string>& cmd) {
     char buffer[128];
     FILE* pipe = popen(full_cmd.c_str(), "r");
     if (!pipe) {
-        std::cerr << "Error: Failed to execute command\n";
+        print_colored(RED, ERR, "Error: Failed to execute command\n");
         return "";
     }
 
@@ -44,7 +74,7 @@ std::string run_command(const std::vector<std::string>& cmd) {
 
     int exit_code = pclose(pipe);
     if (exit_code != 0) {
-        std::cerr << "Warning: Command exited with code " << exit_code << "\n";
+        print_colored(RED, ERR, "Warning: Command exited with code ", exit_code);
     }
 
     return result;
@@ -65,7 +95,7 @@ int count_subtitles(const std::string& video_path) {
     std::string output = run_command(cmd);
 
     if (output.empty()) {
-        std::cerr << "Warning: ffprobe output is empty. Check if the file exists or if ffprobe is in PATH.\n";
+        print_colored(RED, ERR, "Warning: ffprobe output is empty. Check if the file exists or if ffprobe is in PATH.");
         return 0;
     }
 
@@ -73,14 +103,14 @@ int count_subtitles(const std::string& video_path) {
         auto data = json::parse(output);
         return data.contains("streams") ? static_cast<int>(data["streams"].size()) : 0;
     } catch (const json::parse_error& e) {
-        std::cerr << "Error parsing JSON output: " << e.what() << "\n";
+        print_colored(RED, ERR, "Error parsing JSON output: ", e.what());
         return 0;
     }
 }
 
 /**
  * Attach subtitle to video file with proper metadata preservation
- * Preserves all technical information including bitrates
+ * Preserves all technical information including bit rates
  */
 void attach_subtitle(const std::string& input_file, const std::string& subtitle_file,
                      const std::string& output_file, bool add_metadata,
@@ -152,35 +182,40 @@ void attach_subtitle(const std::string& input_file, const std::string& subtitle_
     });
 
     // Debug: Show the command being executed
-    std::cout << "Executing command: ";
+    cout << BLUE;
+    cout << "Executing command: ";
     for (const auto& part : command) {
-        std::cout << part << " ";
+        cout << part << " ";
     }
-    std::cout << "\n";
+    cout << "\n";
+    cout << RESET;
 
     run_command(command);
-    std::cout << "Subtitle attached successfully. Output: " << output_file << std::endl;
+    print_colored(GREEN, OUT, "Subtitle attached successfully. Output: ", output_file);
 }
 
 /**
  * Display help information
  */
 void show_help(const char* program_name) {
-    std::cout << "Usage:\n";
-    std::cout << program_name << " -i <input> [-s <subtitle>] [-o <output>] [-l <lang>] [-m] [--clear-subs]\n\n";
-    std::cout << "Options:\n";
-    std::cout << "  -i, --input     Input video file (required)\n";
-    std::cout << "  -s, --subtitle  Subtitle file to attach\n";
-    std::cout << "  -o, --output    Output file (default: same as input)\n";
-    std::cout << "  -l, --lang      Subtitle language code (default: eng)\n";
-    std::cout << "  -m, --metadata  Add custom metadata only\n";
-    std::cout << "  --name-meta     name metadata for video and streams (default: ro-ox.com)\n";
-    std::cout << "  --clear-subs    Remove existing subtitles before adding new ones\n";
-    std::cout << "  -h, --help      Show this help message\n\n";
-    std::cout << "Examples:\n";
-    std::cout << "  " << program_name << " -i movie.mp4 -s subtitles.srt\n";
-    std::cout << "  " << program_name << " -i movie.mp4 -m\n";
-    std::cout << "  " << program_name << " -i movie.mp4 -s sub.srt -l spa --clear-subs\n";
+    cout << "Usage:\n";
+    cout << program_name << " -i <input> [-s <subtitle>] [-o <output>] [-l <lang>] [-m] [--clear-subs]\n\n";
+    cout << GREEN;
+    cout << "Options:\n";
+    cout << "  -i, --input     Input video file (required)\n";
+    cout << "  -s, --subtitle  Subtitle file to attach\n";
+    cout << "  -o, --output    Output file (default: same as input)\n";
+    cout << "  -l, --lang      Subtitle language code (default: eng)\n";
+    cout << "  -m, --metadata  Add custom metadata only\n";
+    cout << "  --name-meta     name metadata for video and streams (default: ro-ox.com)\n";
+    cout << "  --clear-subs    Remove existing subtitles before adding new ones\n";
+    cout << "  -h, --help      Show this help message\n\n";
+    cout << YELLOW;
+    cout << "Examples:\n";
+    cout << "  " << program_name << " -i movie.mp4 -s subtitles.srt\n";
+    cout << "  " << program_name << " -i movie.mp4 -m\n";
+    cout << "  " << program_name << " -i movie.mp4 -s sub.srt -l spa --clear-subs\n";
+    cout << RESET;
 }
 
 int main(int argc, char* argv[]) {
@@ -218,7 +253,7 @@ int main(int argc, char* argv[]) {
             show_help(argv[0]);
             return 0;
         } else {
-            std::cerr << "Unknown argument: " << arg << "\n";
+            print_colored(RED, ERR, "Unknown argument: ", arg);
             show_help(argv[0]);
             return 1;
         }
@@ -227,20 +262,20 @@ int main(int argc, char* argv[]) {
 
     // Validate required arguments
     if (input_file.empty() || (!add_metadata && subtitle_file.empty())) {
-        std::cerr << "Error: Input file is required. Use -s for subtitle or -m for metadata only.\n";
+        print_colored(RED, ERR, "Error: Input file is required. Use -s for subtitle or -m for metadata only.");
         show_help(argv[0]);
         return 1;
     }
 
     // Check if input file exists
     if (!fs::exists(input_file)) {
-        std::cerr << "Error: Input file does not exist: " << input_file << "\n";
+        print_colored(RED, ERR, "Error: Input file does not exist: ", input_file);
         return 1;
     }
 
     // Check if subtitle file exists (if provided)
     if (!subtitle_file.empty() && !fs::exists(subtitle_file)) {
-        std::cerr << "Error: Subtitle file does not exist: " << subtitle_file << "\n";
+        print_colored(RED, ERR, "Error: Subtitle file does not exist: ", subtitle_file);
         return 1;
     }
 
@@ -257,7 +292,7 @@ int main(int argc, char* argv[]) {
 
     // Warn if output file is the same as input file
     if (input_file == output_file) {
-        std::cout << "Warning: Output file is the same as input file. Original will be overwritten.\n";
+        print_colored(RED, OUT, "Warning: Output file is the same as input file. Original will be overwritten.");
     }
 
     // Execute the subtitle attachment process
@@ -267,15 +302,15 @@ int main(int argc, char* argv[]) {
         if (use_temp) {
             try {
                 fs::rename(output_file, input_file); // Overwrite original file
-                std::cout << "Original file overwritten: " << input_file << "\n";
+                print_colored(YELLOW, OUT, "Original file overwritten: ", input_file);
             } catch (const fs::filesystem_error& e) {
-                std::cerr << "Failed to overwrite original file: " << e.what() << "\n";
+                print_colored(RED, ERR, "Failed to overwrite original file: ", e.what());
                 return 1;
             }
         }
 
     } catch (const std::exception& e) {
-        std::cerr << "Error: " << e.what() << "\n";
+        print_colored(RED, ERR, "Error: ", e.what());
         return 1;
     }
 
