@@ -1,5 +1,6 @@
 let videoFile = null;
 let subtitleFile = null;
+let sourceFile = null;
 
 // Drag and drop functionality
 function setupDragDrop() {
@@ -26,6 +27,8 @@ function setupDragDrop() {
                     handleVideoFile(file);
                 } else if (zone.querySelector('#subtitleFile')) {
                     handleSubtitleFile(file);
+                } else if (zone.querySelector('#sourceFile')) {
+                    handleSourceFile(file);
                 }
             }
         });
@@ -58,16 +61,33 @@ function handleSubtitleFile(file) {
     }
 }
 
+function handleSourceFile(file) {
+    const sourceExtensions = ['.py', '.exe', '.sh', '.cpp'];
+    const extension = '.' + file.name.split('.').pop().toLowerCase();
+
+    if (sourceExtensions.includes(extension)) {
+        sourceFile = file;
+        document.getElementById('sourceFileName').textContent = file.name;
+        document.getElementById('sourceFileName').style.display = 'block';
+    } else {
+        alert('Please select a valid Source!');
+    }
+}
+
 // File input handlers
 document.getElementById('videoFile').addEventListener('change', (e) => {
     if (e.target.files.length > 0) {
         handleVideoFile(e.target.files[0]);
     }
 });
-
 document.getElementById('subtitleFile').addEventListener('change', (e) => {
     if (e.target.files.length > 0) {
         handleSubtitleFile(e.target.files[0]);
+    }
+});
+document.getElementById('sourceFile').addEventListener('change', (e) => {
+    if (e.target.files.length > 0) {
+        handleSourceFile(e.target.files[0]);
     }
 });
 
@@ -93,6 +113,11 @@ function generateCommand() {
     let command = "";
     let command_cpp = './subMerge.exe';
     let command_python = 'python main.py';
+
+    // Path command source
+    if (sourceFile) {
+        command_cpp = command_python = sourceFile.name;
+    }
 
     // Add video file
     command += ` -i "${videoFile.name}"`;

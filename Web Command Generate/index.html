@@ -21,8 +21,21 @@
         <div class="drop-zone" onclick="document.getElementById('subtitleFile').click()">
             <h3>📝 Subtitle File</h3>
             <p>Drop subtitle file here or click to select</p>
+            <br>
+            <p>Optional for metadata only</p>
             <input type="file" id="subtitleFile" class="file-input" accept=".srt,.ass,.ssa,.vtt">
             <div id="subtitleFileName" class="file-name" style="display: none;"></div>
+        </div>
+    </div>
+
+    <div class="file-section-2">
+        <div class="drop-zone" onclick="document.getElementById('sourceFile').click()">
+            <h3>👣 Source Path</h3>
+            <p>Drop Source here or click to select</p>
+            <br>
+            <p>Optional - Leave empty to simple version</p>
+            <input type="file" id="sourceFile" class="file-input" accept=".py,.exe,.sh,.cpp">
+            <div id="sourceFileName" class="file-name" style="display: none;"></div>
         </div>
     </div>
 
